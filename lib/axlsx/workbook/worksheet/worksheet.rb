@@ -8,6 +8,8 @@ module Axlsx
     # definition of characters which are less than the maximum width of 0-9 in the default font for use in String#count.
     # This is used for autowidth calculations
     THIN_CHARS = '^.acfijklrstxzFIJL()-'.freeze
+    ALLOWED_WORKSHEET_STATES = [:visible, :hidden, :very_hidden].freeze
+    ALLOWED_WORKSHEET_PAGE_BREAK_TYPES = [String, Cell].freeze
     
     # Creates a new worksheet.
     # @note the recommended way to manage worksheets is Workbook#add_worksheet
@@ -53,7 +55,7 @@ module Axlsx
     # :very_hidden sheets should be inaccessible to end users.
     # @param [Symbol] sheet_state The visible state for this sheet.
     def state=(sheet_state)
-      RestrictionValidator.validate :worksheet_state, [:visible, :hidden, :very_hidden], sheet_state
+      RestrictionValidator.validate :worksheet_state, ALLOWED_WORKSHEET_STATES, sheet_state
       @state = sheet_state
     end
 
@@ -537,7 +539,7 @@ module Axlsx
     # @example
     #   ws.add_page_break("A4")
     def add_page_break(cell)
-      DataTypeValidator.validate :worksheet_page_break, [String, Cell], cell
+      DataTypeValidator.validate :worksheet_page_break, ALLOWED_WORKSHEET_PAGE_BREAK_TYPES, cell
       column_index, row_index = if cell.is_a?(String)
           Axlsx.name_to_indices(cell)
         else

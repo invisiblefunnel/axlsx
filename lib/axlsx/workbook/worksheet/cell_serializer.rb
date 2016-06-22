@@ -2,6 +2,8 @@ module Axlsx
 
   # The Cell Serializer class contains the logic for serializing cells based on their type.
   class CellSerializer
+    VALID_TEXT_RUN_STYLES = (RichTextRun::INLINE_STYLES - [:value, :type]).freeze
+
     class << self
       # Calls the proper serialization method based on type.
       # @param [Integer] row_index The index of the cell's row
@@ -21,9 +23,8 @@ module Axlsx
       # @return [String]
       def run_xml_string(cell, str = '')
         if cell.is_text_run?
-          valid = RichTextRun::INLINE_STYLES - [:value, :type]
           data = Hash[cell.instance_values.map{ |k, v| [k.to_sym, v] }] 
-          data = data.select { |key, value| valid.include?(key) && !value.nil? }
+          data = data.select { |key, value| VALID_TEXT_RUN_STYLES.include?(key) && !value.nil? }
           RichText.new(cell.value.to_s, data).to_xml_string(str)
         elsif cell.contains_rich_text?
           cell.value.to_xml_string(str)
