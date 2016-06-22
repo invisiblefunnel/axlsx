@@ -3,6 +3,9 @@ module Axlsx
   # The Cell Serializer class contains the logic for serializing cells based on their type.
   class CellSerializer
     VALID_TEXT_RUN_STYLES = (RichTextRun::INLINE_STYLES - [:value, :type]).freeze
+    OPENING_FORMULA_SUB = '{='.freeze
+    CLOSING_FORMULA_SUB = /}$/.freeze
+    EMPTY_STRING = ''.freeze
 
     class << self
       # Calls the proper serialization method based on type.
@@ -96,7 +99,11 @@ module Axlsx
       # @param [String] str The string the serialized content will be appended to.
       # @return [String]
       def array_formula_serialization(cell, str='')
-        str << %[t="str"><f t="array" ref="#{cell.r}">#{cell.clean_value.to_s.sub('{=', '').sub(/}$/, '')}</f>]
+        clean_formula = cell.clean_value.to_s
+                                        .sub(OPENING_FORMULA_SUB, EMPTY_STRING)
+                                        .sub(CLOSING_FORMULA_SUB, EMPTY_STRING)
+
+        str << %[t="str"><f t="array" ref="#{cell.r}">#{clean_formula}</f>]
         str << %[<v>#{cell.formula_value.to_s}</v>] unless cell.formula_value.nil?
       end
 
@@ -139,6 +146,10 @@ module Axlsx
       end
 
       private
+
+      def clean_formula(clean_value)
+        clean_value.to_s
+      end
 
       def numeric(cell, str = '')
         value_serialization 'n', cell.value, str
