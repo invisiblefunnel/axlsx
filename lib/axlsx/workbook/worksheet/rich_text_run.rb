@@ -194,8 +194,15 @@ module Axlsx
     
     def to_xml_string(str = '')
       valid = RichTextRun::INLINE_STYLES
-      data = Hash[self.instance_values.map{ |k, v| [k.to_sym, v] }] 
-      data = data.select { |key, value| valid.include?(key) && !value.nil? }
+
+      data = {}
+      instance_variables.each do |name|
+        sym_name = name[1..-1].to_sym
+        value = instance_variable_get(name)
+        if !value.nil? && valid.include?(sym_name)
+          data[sym_name] = value
+        end
+      end
       
       str << '<r><rPr>'
       data.keys.each do |key|

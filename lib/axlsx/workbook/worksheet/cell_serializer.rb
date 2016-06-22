@@ -25,12 +25,20 @@ module Axlsx
       # @param [String] str The string instance this run will be concated to.
       # @return [String]
       def run_xml_string(cell, str = '')
+        value = cell.value
         if cell.is_text_run?
-          data = Hash[cell.instance_values.map{ |k, v| [k.to_sym, v] }] 
-          data = data.select { |key, value| VALID_TEXT_RUN_STYLES.include?(key) && !value.nil? }
-          RichText.new(cell.value.to_s, data).to_xml_string(str)
+          data = {}
+
+          cell.instance_variables.each do |name|
+            sym_name = name[1..-1].to_sym
+            if !value.nil? && VALID_TEXT_RUN_STYLES.include?(sym_name)
+              data[sym_name] = cell.instance_variable_get(name)
+            end
+          end
+
+          RichText.new(value.to_s, data).to_xml_string(str)
         elsif cell.contains_rich_text?
-          cell.value.to_xml_string(str)
+          value.to_xml_string(str)
         else
           str << %[<t>#{cell.clean_value}</t>]
         end
